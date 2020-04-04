@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.utils.safestring import mark_safe
+from django.utils.timezone import now
 
 from website.models import Website, Check
 
@@ -14,11 +16,26 @@ class WebsiteAdmin(admin.ModelAdmin):
         'hsts_header',
         'delay',
         'delay_avg',
-        'ssl_expiry_date',
+        'get_ssl_expiry_date',
     )
     search_fields = ('name', 'url',)
 
     fields = ('name', 'url', 'active')
+
+    def get_ssl_expiry_date(self, instance):
+        if not instance.ssl_expiry_date:
+            return '-'
+
+        delta = instance.ssl_expiry_date - now().date()
+        if delta.days <= 0:
+            return mark_safe('<span style="color:red">nieważny od {} dni</span>'.format(delta.days))
+
+        if delta.days <= 14:
+            return mark_safe('<span style="color:orange">wygasa za {} dni</span>'.format(delta.days))
+
+        return instance.ssl_expiry_date
+
+    get_ssl_expiry_date.short_description = 'Ważność certyfikatu'
 
 
 @admin.register(Check)
