@@ -17,9 +17,9 @@ get_ms = lambda: int(round(time() * 1000))
 class Command(BaseCommand):
 
     def handle(self, *args, **options):
-        model = Website.objects.filter(last_check__isnull=True).first()
+        model = Website.objects.filter(active=True, last_check__isnull=True).first()
         if not model:
-            model = Website.objects.order_by('last_check').first()
+            model = Website.objects.filter(active=True).order_by('last_check').first()
 
         check = Check(website=model)
 
